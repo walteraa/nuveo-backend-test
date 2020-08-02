@@ -1,0 +1,72 @@
+version: '3.6'
+
+services:
+  app:
+    environment:
+      DATABASE_URL: postgres://postgres@db
+      RABBIT_HOST: broker
+      RABBIT_PORT: 5672
+      RABBIT_USER: rabbitmq
+      RABBIT_PASS: rabbitmq
+      QUEUE_NAME: workflows_queue
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - gems
+      - broker
+    build: .
+    command: bash startup_app.sh
+    tty: true
+    stdin_open: true
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+      - gems:/gems
+  app_worker:
+    environment:
+      DATABASE_URL: postgres://postgres@db
+      QUEUE_NAME: workflows_queue
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - gems
+      - broker
+    build: .
+    command: bash startup_app_worker.sh 
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/app
+      - gems:/gems
+  db:
+    image: postgres:9.6
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - db:/var/lib/postgresql/data]
+  gems:
+    image: busybox
+    volumes:
+      - gems:/gems
+
+  broker:
+    image: "rabbitmq:3-management"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - "./enabled_plugins:/etc/rabbitmq/enabled_plugins"
+  redis:
+    image: redis:5.0.0
+    ports:
+      - 6379:6379
+
+volumes:
+  db:
+  gems:
