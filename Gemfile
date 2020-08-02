@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '2.6.3'
 
+gem "bunny", ">= 2.9.2"
 gem 'jbuilder', '> 2.5'
 gem 'pg', '>= 0.18', '< 2.0'
 gem 'puma', '> 3.11'
