@@ -1,2 +1,4 @@
-json.extract! workflow, :id, :created_at, :updated_at
-json.url workflow_url(workflow, format: :json)
+json.id workflow.id
+json.status workflow.status
+json.data workflow.data
+json.steps workflow.steps

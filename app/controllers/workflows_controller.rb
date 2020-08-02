@@ -1,14 +1,15 @@
 class WorkflowsController < ApplicationController
+  include ::ControllersMixins::WorkflowMixin
   before_action :set_workflow, only: %i[show update destroy]
+  before_action :reenqueue_job, only: %i[update]
 
   # GET /workflows
   def index
-    @workflows = Workflow.all
+    @workflows = Workflow.order('workflows.created_at ASC').all
   end
 
-  # GET /workflows/1
-  def show
-  end
+  # GET /workflows/{UUID}
+  def show; end
 
   # POST /workflows
   def create
@@ -21,24 +22,12 @@ class WorkflowsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /workflows/1
+  # PATCH/PUT /workflows/{UUID}
   def update
-    if @workflow.update(workflow_params)
+    if @workflow.update(workflow_update_params)
       render :show, status: :ok, location: @workflow
     else
       render json: @workflow.errors, status: :unprocessable_entity
     end
   end
-
-
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_workflow
-      @workflow = Workflow.find(params[:id])
-    end
-
-    # Only allow a list of trusted parameters through.
-    def workflow_params
-      params.fetch(:workflow, {})
-    end
 end
