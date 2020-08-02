@@ -39,7 +39,7 @@ class WorkflowsController < ApplicationController
     if @workflow_id.nil?
       head :no_content
     else
-      # Call job to update the workflow to consumed
+      ConsumeWorkflowJob.perform_later(@workflow_id)
       respond_to do |format|
         format.csv do
           send_data generate_csv

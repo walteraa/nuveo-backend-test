@@ -176,5 +176,18 @@ RSpec.describe '/workflows', type: :request do
        expect(response.body).to eq("#{workflow.data.keys.join(',')}\n#{workflow.data.values.join(',')}\n")
      end
     end
+
+    context 'workflow in the queue enqueue an updatee workflow job' do
+     let(:workflow) { create(:workflow) }
+
+     before do
+       workflow.touch # hack to make the workflow be created before the get
+     end
+
+     it do
+       expect { get workflow_consume_path }.to have_enqueued_job(ConsumeWorkflowJob)
+     end
+
+    end
   end
 end
