@@ -10,13 +10,18 @@ module ExceptionHandler
       json_errors(e, status: :unprocessable_entity)
     end
 
+    rescue_from ActionController::ParameterMissing do |e|
+      json_errors(e, status: :unprocessable_entity)
+    end
+
     private
 
     def json_errors(exception, options = {})
       errors = exception.is_a?(ActiveRecord::Base) ? exception.errors : exception.message
 
       render json: { errors: [errors || 'invalid data'],
-                     error_details: errors }, status: options[:status]
+                     error_details: errors }, status: options[:status],
+             content_type: 'application/json'
     end
   end
 end

@@ -16,12 +16,34 @@ RSpec.describe "/workflows", type: :request do
   # This should return the minimal set of attributes required to create a valid
   # Workflow. As you add validations to Workflow, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) {
-    skip("Add a hash of attributes valid for your model")
-  }
+  let(:valid_attributes) do
+    { 'data': {
+        'key1': 'value',
+        'key2': 'value2'
+      },
+      'steps': ['a', 'b', 'c']
+    }
+  end
 
   let(:invalid_attributes) {
-    skip("Add a hash of attributes invalid for your model")
+    { 'data_wrong': {
+        'key1': 'value',
+        'key2': 'value2'
+      },
+      'steps_wrong': ['a', 'b', 'c']
+    }
+  }
+
+  let(:update_valid_attributes) {
+    { 'status': 'consumed' }
+  }
+
+  let(:update_invalid_attributes_value) {
+    { 'status': 'consumedss' }
+  }
+
+  let(:update_invalid_attributes_key) {
+    { 'key': 'consumed' }
   }
 
   # This should return the minimal set of values that should be in the headers
@@ -53,13 +75,13 @@ RSpec.describe "/workflows", type: :request do
       it "creates a new Workflow" do
         expect {
           post workflows_url,
-               params: { workflow: valid_attributes }, headers: valid_headers, as: :json
+               params: valid_attributes, headers: valid_headers, as: :json
         }.to change(Workflow, :count).by(1)
       end
 
       it "renders a JSON response with the new workflow" do
         post workflows_url,
-             params: { workflow: valid_attributes }, headers: valid_headers, as: :json
+             params: valid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:created)
         expect(response.content_type).to match(a_string_including("application/json"))
       end
@@ -69,15 +91,15 @@ RSpec.describe "/workflows", type: :request do
       it "does not create a new Workflow" do
         expect {
           post workflows_url,
-               params: { workflow: invalid_attributes }, as: :json
+               params: invalid_attributes, as: :json
         }.to change(Workflow, :count).by(0)
       end
 
       it "renders a JSON response with errors for the new workflow" do
         post workflows_url,
-             params: { workflow: invalid_attributes }, headers: valid_headers, as: :json
+             params: invalid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to eq("application/json")
+        expect(response.content_type).to eq("application/json; charset=utf-8")
       end
     end
   end
@@ -91,37 +113,41 @@ RSpec.describe "/workflows", type: :request do
       it "updates the requested workflow" do
         workflow = Workflow.create! valid_attributes
         patch workflow_url(workflow),
-              params: { workflow: invalid_attributes }, headers: valid_headers, as: :json
+              params: update_valid_attributes, headers: valid_headers, as: :json
         workflow.reload
-        skip("Add assertions for updated state")
+        expect(workflow.status).to eq('consumed')
       end
 
       it "renders a JSON response with the workflow" do
         workflow = Workflow.create! valid_attributes
         patch workflow_url(workflow),
-              params: { workflow: invalid_attributes }, headers: valid_headers, as: :json
+              params: update_valid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:ok)
-        expect(response.content_type).to eq("application/json")
+        expect(response.content_type).to eq("application/json; charset=utf-8")
       end
     end
 
     context "with invalid parameters" do
-      it "renders a JSON response with errors for the workflow" do
-        workflow = Workflow.create! valid_attributes
-        patch workflow_url(workflow),
-              params: { workflow: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to eq("application/json")
-      end
-    end
-  end
 
-  describe "DELETE /destroy" do
-    it "destroys the requested workflow" do
-      workflow = Workflow.create! valid_attributes
-      expect {
-        delete workflow_url(workflow), headers: valid_headers, as: :json
-      }.to change(Workflow, :count).by(-1)
+      context 'with invalid value' do
+        it "renders a JSON response with errors for the workflow" do
+          workflow = Workflow.create! valid_attributes
+          patch workflow_url(workflow),
+                params: update_invalid_attributes_value, headers: valid_headers, as: :json
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to eq("application/json; charset=utf-8")
+        end
+      end
+
+      context 'with invalid key' do
+        it "renders a JSON response with errors for the workflow" do
+          workflow = Workflow.create! valid_attributes
+          patch workflow_url(workflow),
+                params: update_invalid_attributes_key, headers: valid_headers, as: :json
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.content_type).to eq("application/json; charset=utf-8")
+        end
+      end
     end
   end
 end
