@@ -12,7 +12,7 @@ module Amqp
                         password: ENV['RABBIT_PASS'])
       @conn.start
       @ch = @conn.create_channel
-      @queue = @ch.queue(ENV['QUEUE_NAME'])
+      @queue = @ch.queue("#{Rails.env}.#{ENV['QUEUE_NAME']}")
       @exchange = @ch.default_exchange
     end
 
@@ -22,6 +22,11 @@ module Amqp
 
     def pop
       @queue.get.last
+    end
+
+    # Hack to make possible clear the queue in tests
+    def purge
+      @queue.purge
     end
   end
 end
