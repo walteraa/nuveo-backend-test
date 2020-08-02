@@ -12,7 +12,7 @@ require 'rails_helper'
 # of tools you can use to make these specs even more expressive, but we're
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
-RSpec.describe "/workflows", type: :request do
+RSpec.describe '/workflows', type: :request do
   # This should return the minimal set of attributes required to create a valid
   # Workflow. As you add validations to Workflow, be sure to
   # adjust the attributes here as well.
@@ -54,63 +54,63 @@ RSpec.describe "/workflows", type: :request do
     {}
   }
 
-  describe "GET /index" do
-    it "renders a successful response" do
+  describe 'GET /index' do
+    it 'renders a successful response' do
       Workflow.create! valid_attributes
-      get workflows_url, headers: valid_headers, as: :json
+      get workflow_index_url, headers: valid_headers, as: :json
       expect(response).to be_successful
     end
   end
 
-  describe "GET /show" do
-    it "renders a successful response" do
+  describe 'GET /show' do
+    it 'renders a successful response' do
       workflow = Workflow.create! valid_attributes
       get workflow_url(workflow), as: :json
       expect(response).to be_successful
     end
   end
 
-  describe "POST /create" do
-    context "with valid parameters" do
-      it "creates a new Workflow" do
+  describe 'POST /create' do
+    context 'with valid parameters' do
+      it 'creates a new Workflow' do
         expect {
-          post workflows_url,
+          post workflow_index_url,
                params: valid_attributes, headers: valid_headers, as: :json
         }.to change(Workflow, :count).by(1)
       end
 
-      it "renders a JSON response with the new workflow" do
-        post workflows_url,
+      it 'renders a JSON response with the new workflow' do
+        post workflow_index_url,
              params: valid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:created)
-        expect(response.content_type).to match(a_string_including("application/json"))
+        expect(response.content_type).to match(a_string_including('application/json'))
       end
     end
 
-    context "with invalid parameters" do
-      it "does not create a new Workflow" do
+    context 'with invalid parameters' do
+      it 'does not create a new Workflow' do
         expect {
-          post workflows_url,
+          post workflow_index_url,
                params: invalid_attributes, as: :json
         }.to change(Workflow, :count).by(0)
       end
 
-      it "renders a JSON response with errors for the new workflow" do
-        post workflows_url,
+      it 'renders a JSON response with errors for the new workflow' do
+        post workflow_index_url,
              params: invalid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to eq("application/json; charset=utf-8")
+        expect(response.content_type).to eq('application/json; charset=utf-8')
       end
     end
   end
 
-  describe "PATCH /update" do
-    context "with valid parameters" do
+  describe 'PATCH /update' do
+    context 'with valid parameters' do
       let(:new_attributes) {
-        skip("Add a hash of attributes valid for your model")
+        skip('Add a hash of attributes valid for your model')
       }
 
-      it "updates the requested workflow" do
+      it 'updates the requested workflow' do
         workflow = Workflow.create! valid_attributes
         patch workflow_url(workflow),
               params: update_valid_attributes, headers: valid_headers, as: :json
@@ -118,36 +118,63 @@ RSpec.describe "/workflows", type: :request do
         expect(workflow.status).to eq('consumed')
       end
 
-      it "renders a JSON response with the workflow" do
+      it 'renders a JSON response with the workflow' do
         workflow = Workflow.create! valid_attributes
         patch workflow_url(workflow),
               params: update_valid_attributes, headers: valid_headers, as: :json
         expect(response).to have_http_status(:ok)
-        expect(response.content_type).to eq("application/json; charset=utf-8")
+        expect(response.content_type).to eq('application/json; charset=utf-8')
       end
     end
 
-    context "with invalid parameters" do
+    context 'with invalid parameters' do
 
       context 'with invalid value' do
-        it "renders a JSON response with errors for the workflow" do
+        it 'renders a JSON response with errors for the workflow' do
           workflow = Workflow.create! valid_attributes
           patch workflow_url(workflow),
                 params: update_invalid_attributes_value, headers: valid_headers, as: :json
           expect(response).to have_http_status(:unprocessable_entity)
-          expect(response.content_type).to eq("application/json; charset=utf-8")
+          expect(response.content_type).to eq('application/json; charset=utf-8')
         end
       end
 
       context 'with invalid key' do
-        it "renders a JSON response with errors for the workflow" do
+        it 'renders a JSON response with errors for the workflow' do
           workflow = Workflow.create! valid_attributes
           patch workflow_url(workflow),
                 params: update_invalid_attributes_key, headers: valid_headers, as: :json
           expect(response).to have_http_status(:unprocessable_entity)
-          expect(response.content_type).to eq("application/json; charset=utf-8")
+          expect(response.content_type).to eq('application/json; charset=utf-8')
         end
       end
+    end
+  end
+
+  describe 'GET /workflow/consume' do
+    before do
+      Amqp::RabbitClient.new.purge
+    end
+    context 'without workflow in the queue' do
+      it 'responds no content' do
+        get workflow_consume_path
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+
+    context 'with workflow in the queue' do
+     let(:workflow) { create(:workflow) }
+
+     before do
+       workflow.touch # hack to make the workflow be created before the get
+       get workflow_consume_path
+     end
+
+     it do
+       expect(response).to have_http_status(:ok)
+       expect(response.content_type).to eq('application/octet-stream')
+       expect(response.body).to eq("#{workflow.data.keys.join(',')}\n#{workflow.data.values.join(',')}\n")
+     end
     end
   end
 end

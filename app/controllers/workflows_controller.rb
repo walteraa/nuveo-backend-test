@@ -1,7 +1,10 @@
+require 'csv'
+
 class WorkflowsController < ApplicationController
   include ::ControllersMixins::WorkflowMixin
   before_action :set_workflow, only: %i[show update destroy]
   before_action :reenqueue_workflow, only: %i[update]
+  before_action :set_workflow_from_queue, only: %i[consume]
 
   # GET /workflows
   def index
@@ -28,6 +31,20 @@ class WorkflowsController < ApplicationController
       render :show, status: :ok, location: @workflow
     else
       render json: @workflow.errors, status: :unprocessable_entity
+    end
+  end
+
+  # GET /workflow/consume
+  def consume
+    if @workflow_id.nil?
+      head :no_content
+    else
+      # Call job to update the workflow to consumed
+      respond_to do |format|
+        format.csv do
+          send_data generate_csv
+        end
+      end
     end
   end
 end

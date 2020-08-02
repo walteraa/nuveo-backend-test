@@ -24,5 +24,19 @@ module ControllersMixins
        #TODO: Add the workflow ID in the queue again if the 
       end
     end
+
+    def set_workflow_from_queue
+      queue = Amqp::RabbitClient.new
+      @workflow_id = queue.pop
+    end
+
+    def generate_csv
+      workflow = Workflow.find @workflow_id
+      data = workflow.data
+      ::CSV.generate do |csv|
+        csv << data.keys
+        csv << data.values
+      end
+    end
   end
 end

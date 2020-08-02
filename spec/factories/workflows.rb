@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :workflow do
-    data { { key: 'value' } }
+    data { { key1: 'value1', key2: 'value2' } }
     status { Workflow.statuses.keys.sample }
     steps { %w[add commit push] }
 

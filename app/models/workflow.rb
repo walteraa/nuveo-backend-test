@@ -8,6 +8,7 @@ class Workflow < ApplicationRecord
 
   private
 
+  # Callback to enqueue the workflow in the broker
   def enqueue_workflow
     queue = Amqp::RabbitClient.new
     queue.push id
