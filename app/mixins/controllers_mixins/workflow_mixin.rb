@@ -19,7 +19,7 @@ module ControllersMixins
       params.permit(:status).to_h
     end
 
-    def reenqueue_job
+    def reenqueue_workflow
       if workflow_update_params.dig(:status).eql? 'inserted' && @workflow.consumed?
        #TODO: Add the workflow ID in the queue again if the 
       end

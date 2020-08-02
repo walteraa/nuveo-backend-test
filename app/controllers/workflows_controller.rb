@@ -1,7 +1,7 @@
 class WorkflowsController < ApplicationController
   include ::ControllersMixins::WorkflowMixin
   before_action :set_workflow, only: %i[show update destroy]
-  before_action :reenqueue_job, only: %i[update]
+  before_action :reenqueue_workflow, only: %i[update]
 
   # GET /workflows
   def index
