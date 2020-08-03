@@ -21,7 +21,8 @@ module ControllersMixins
 
     def reenqueue_workflow
       if workflow_update_params.dig(:status).eql? 'inserted' && @workflow.consumed?
-       #TODO: Add the workflow ID in the queue again if the 
+        queue = Amqp::RabbitClient.new
+        queue.push @workflow.id
       end
     end
 
